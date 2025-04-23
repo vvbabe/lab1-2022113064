@@ -81,7 +81,7 @@ public class GraphController {
 
     private void showDirectedGraph() {
         if (graph == null) {
-            graphDisplayArea.setText("图未加载");
+            graphDisplayArea.setText("AAA");
             return;
         }
 

@@ -69,7 +69,7 @@ public class GraphController {
     @FXML
     private void handleLoadFile() {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("选择文本文件");
+        fileChooser.setTitle("选择txt文件");
         File file = fileChooser.showOpenDialog(loadFileBtn.getScene().getWindow());
 
         if (file != null) {

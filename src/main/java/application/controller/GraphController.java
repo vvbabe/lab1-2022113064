@@ -83,6 +83,7 @@ public class GraphController {
         if (graph == null) {
 
             graphDisplayArea.setText("图未加载");
+
             return;
         }
 

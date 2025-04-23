@@ -1,0 +1,87 @@
+/* 主容器样式 */
+.panel {
+    -fx-padding: 10;
+}
+
+.panel-heading {
+    -fx-background-color: #428bca;
+    -fx-padding: 10;
+}
+
+.h2 {
+    -fx-text-fill: white;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+/* 文本区域样式 */
+.text-area {
+    -fx-font-family: monospace;
+    -fx-font-size: 14px;
+}
+
+/* 标签样式 */
+.label {
+    -fx-font-weight: bold;
+}
+
+/* 按钮样式 */
+.btn {
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+/* 标签页样式 */
+.tab-pane .tab-header-area .tab-header-background {
+    -fx-background-color: #f8f9fa;
+}
+
+.tab-pane .tab {
+    -fx-background-color: #e9ecef;
+    -fx-padding: 5 15;
+}
+
+.tab-pane .tab:selected {
+    -fx-background-color: #007bff;
+    -fx-text-fill: white;
+}
+
+/* 表格样式 */
+.table-view {
+    -fx-font-size: 14px;
+}
+
+.table-view .column-header {
+    -fx-background-color: #007bff;
+    -fx-text-fill: white;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: #b8daff;
+}
+
+ 图像面板样式
+.stack-pane {
+    -fx-padding: 10;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 1;
+    -fx-border-radius: 5;
+    -fx-background-color: white;
+    -fx-background-radius: 5;
+}
+/* 增大文本区域 */
+#graphDisplayArea {
+    -fx-pref-height: 400px;
+    -fx-max-height: infinity;
+}
+
+/* 缩小图像区域 */
+#graphImagePane {
+    -fx-pref-height: 300px;
+    -fx-max-height: 300px;
+}
+
+#graphImageView {
+    -fx-fit-width: 600px;
+    -fx-fit-height: 300px;
+}

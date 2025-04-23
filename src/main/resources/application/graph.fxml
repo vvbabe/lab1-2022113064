@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.*?>
+
+<VBox fx:id="mainContainer" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="application.controller.GraphController" spacing="10" styleClass="panel">
+    <HBox spacing="10" styleClass="panel-heading">
+        <Label text="图结构处理程序" styleClass="h2"/>
+    </HBox>
+
+    <HBox spacing="10">
+        <TextField fx:id="filePathField" promptText="文件路径" editable="false" HBox.hgrow="ALWAYS"/>
+        <Button fx:id="loadFileBtn" text="加载文件" onAction="#handleLoadFile"/>
+    </HBox>
+
+    <TabPane>
+        <Tab text="图展示">
+            <VBox spacing="10">
+                <TextArea fx:id="graphDisplayArea" editable="false" wrapText="true" prefHeight="600"/>
+            </VBox>
+        </Tab>
+
+        <Tab text="桥接词查询">
+            <VBox spacing="10">
+                <HBox spacing="10">
+                    <TextField fx:id="bridgeWord1Field" promptText="单词1"/>
+                    <TextField fx:id="bridgeWord2Field" promptText="单词2"/>
+                    <Button text="查询桥接词" onAction="#handleQueryBridgeWords" styleClass="btn,btn-info"/>
+                </HBox>
+                <TextArea fx:id="bridgeWordsResult" editable="false" wrapText="true"/>
+            </VBox>
+        </Tab>
+
+        <Tab text="生成新文本">
+            <VBox spacing="10">
+                <Label text="输入文本:"/>
+                <TextArea fx:id="newTextInput" promptText="输入文本"/>
+                <Button text="生成新文本" onAction="#handleGenerateNewText" styleClass="btn,btn-success"/>
+                <Label text="输出结果:"/>
+                <TextArea fx:id="newTextOutput" editable="false" wrapText="true"/>
+            </VBox>
+        </Tab>
+
+        <Tab text="最短路径">
+            <VBox spacing="10">
+                <HBox spacing="10">
+                    <TextField fx:id="word1Field" promptText="起点单词"/>
+                    <TextField fx:id="word2Field" promptText="终点单词"/>
+                    <Button text="计算最短路径" onAction="#handleCalcShortestPath" styleClass="btn,btn-warning"/>
+                </HBox>
+                <TextArea fx:id="shortestPathResult" editable="false" wrapText="true"/>
+            </VBox>
+        </Tab>
+
+        <Tab text="PageRank">
+            <VBox spacing="10">
+                <Button text="计算PageRank" onAction="#handleCalcPageRank" styleClass="btn,btn-danger"/>
+                <TextArea fx:id="pageRankResult" editable="false" wrapText="true"/>
+            </VBox>
+        </Tab>
+
+        <Tab text="随机游走">
+            <VBox spacing="10">
+                <Button text="开始随机游走" onAction="#handleRandomWalk" styleClass="btn,btn-primary"/>
+                <TextArea fx:id="randomWalkResult" editable="false" wrapText="true"/>
+            </VBox>
+        </Tab>
+    </TabPane>
+</VBox>

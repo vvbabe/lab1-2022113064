@@ -198,18 +198,33 @@ public class Graph {
 
         // 生成图片文件
         File output = new File(filename);
-        Graphviz.fromGraph(g).width(300).height(200).render(Format.PNG).toFile(output);
+        Graphviz.fromGraph(g)
+                .width(800)     // 当然可以保留
+                .height(1000)   // 保留
+                .render(Format.PNG) // 关键，设置成300dpi（默认是96）
+                .toFile(output);
+
 
         return output.getAbsolutePath();
     }
     // PageRank计算
-    public Map<Vertex, Double> calculatePageRank(double dampingFactor, int iterations) {
+// 支持自定义初始PageRank
+    public Map<Vertex, Double> calculatePageRank(double dampingFactor, int iterations, Map<Vertex, Double> initialPageRank) {
         Map<Vertex, Double> pageRank = new HashMap<>();
-        double initialValue = 1.0 / adjacencyList.size();
 
         // 初始化
-        for (Vertex vertex : adjacencyList.keySet()) {
-            pageRank.put(vertex, initialValue);
+        if (initialPageRank != null && !initialPageRank.isEmpty()) {
+            // 使用外部提供的初始值
+            double sum = initialPageRank.values().stream().mapToDouble(Double::doubleValue).sum();
+            for (Vertex vertex : adjacencyList.keySet()) {
+                pageRank.put(vertex, initialPageRank.getOrDefault(vertex, 0.0) / sum); // 归一化
+            }
+        } else {
+            // 均匀分布
+            double initialValue = 1.0 / adjacencyList.size();
+            for (Vertex vertex : adjacencyList.keySet()) {
+                pageRank.put(vertex, initialValue);
+            }
         }
 
         // 迭代计算
@@ -217,17 +232,17 @@ public class Graph {
             Map<Vertex, Double> newPageRank = new HashMap<>();
             double danglingValue = 0.0;
 
-            // 计算悬挂节点的贡献
+            // 计算悬挂节点贡献（没有出边的节点）
             for (Vertex vertex : adjacencyList.keySet()) {
                 if (getEdgesFrom(vertex).isEmpty()) {
                     danglingValue += pageRank.get(vertex) / adjacencyList.size();
                 }
             }
 
+            // 计算每个节点的新PageRank值
             for (Vertex vertex : adjacencyList.keySet()) {
                 double sum = 0.0;
 
-                // 计算来自其他节点的贡献
                 for (Vertex other : adjacencyList.keySet()) {
                     if (!other.equals(vertex)) {
                         List<Edge> edges = getEdgesFrom(other);
@@ -235,7 +250,6 @@ public class Graph {
                             long outLinks = edges.size();
                             boolean linksToCurrent = edges.stream()
                                     .anyMatch(e -> e.getTarget().equals(vertex));
-
                             if (linksToCurrent) {
                                 sum += pageRank.get(other) / outLinks;
                             }
@@ -243,9 +257,9 @@ public class Graph {
                     }
                 }
 
-                // 计算新的PageRank
-                double newValue = (1 - dampingFactor) / adjacencyList.size() +
-                        dampingFactor * (sum + danglingValue);
+                // 计算新的PageRank值
+                double newValue = (1 - dampingFactor) / adjacencyList.size()
+                        + dampingFactor * (sum + danglingValue);
                 newPageRank.put(vertex, newValue);
             }
 
@@ -254,4 +268,12 @@ public class Graph {
 
         return pageRank;
     }
+
+    // 获取指定节点的出度（即指向其他节点的边的数量）
+    public int getOutDegree(Vertex vertex) {
+        List<Edge> edges = getEdgesFrom(vertex);
+        return edges.size(); // 返回出度，即边的数量
+    }
+
+
 }

@@ -15,4 +15,5 @@ module com.example.ruangonglab1 {
     // 如果有其他 controller 包，也需要对应 opens
     exports application;
     exports application.controller;
+
 }

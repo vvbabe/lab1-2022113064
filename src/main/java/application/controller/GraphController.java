@@ -1,13 +1,13 @@
 package application.controller;
-import java.nio.file.Paths;
+
 import application.model.Graph;
 import application.model.Vertex;
 import application.util.FileLoader;
+import java.nio.file.Paths;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.io.IOException;
 import java.util.stream.Collectors;
@@ -18,7 +18,7 @@ import java.util.Random;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
-
+import org.kordamp.ikonli.javafx.FontIcon;
 public class GraphController {
     @FXML private Button loadFileBtn;
     @FXML private TextField filePathField;
@@ -32,6 +32,7 @@ public class GraphController {
     @FXML private TextArea pageRankResult;
     @FXML private TextArea randomWalkResult;
     @FXML private VBox mainContainer;
+    private static final Random rand = new Random(); // 类级别声明
 
     @FXML
     private TextField bridgeWord1Field;
@@ -42,6 +43,23 @@ public class GraphController {
 
 
     private Graph graph;
+//写一些仅供测试用的 setter 方法
+    public void setBridgeWord1Field(TextField field) {
+        this.bridgeWord1Field = field;
+    }
+
+    public void setBridgeWord2Field(TextField field) {
+        this.bridgeWord2Field = field;
+    }
+
+    public void setBridgeWordsResult(TextArea area) {
+        this.bridgeWordsResult = area;
+    }
+
+    public void setGraph(Graph graph) {
+        this.graph = graph;
+    }
+
 
     @FXML
     public void initialize() {
@@ -118,8 +136,9 @@ public class GraphController {
 
         graphDisplayArea.setText(sb.toString());
     }
+
     @FXML
-    private void handleQueryBridgeWords() {
+    public void handleQueryBridgeWords() {
         if (graph == null) {
             bridgeWordsResult.setText("请先加载图数据");
             return;
@@ -167,14 +186,13 @@ public class GraphController {
 
         String[] words = inputText.toLowerCase().split("\\s+");
         StringBuilder output = new StringBuilder();
-        Random random = new Random();
 
         for (int i = 0; i < words.length - 1; i++) {
             output.append(words[i]).append(" ");
 
             List<String> bridges = graph.findBridgeWords(words[i], words[i+1]);
             if (bridges != null && !bridges.isEmpty()) {
-                String bridge = bridges.get(random.nextInt(bridges.size()));
+                String bridge = bridges.get(rand.nextInt(bridges.size()));
                 output.append(bridge).append(" ");
             }
         }
@@ -248,22 +266,119 @@ public class GraphController {
             pageRankResult.setText("请先加载图数据");
             return;
         }
+// Step 1: 计算总节点数
+        int totalVertices = graph.getVertices().size();
 
-        Map<Vertex, Double> pageRank = graph.calculatePageRank(0.85, 20);
+// Step 2: 计算TF-IDF权重作为初始PR值
+// 2.1 计算TF（词频，即节点的出边数量）
+        Map<Vertex, Integer> tfMap = graph.getVertices().stream()
+                .collect(Collectors.toMap(
+                        v -> v,
+                        v -> graph.getEdgesFrom(v).size()
+                ));
 
+// 2.2 计算IDF（逆文档频率）
+        Map<Vertex, Double> idfMap = graph.getVertices().stream()
+                .collect(Collectors.toMap(
+                        v -> v,
+                        v -> {
+                            int inDegree = (int) graph.getVertices().stream()
+                                    .filter(u -> graph.getEdgesFrom(u).stream()
+                                            .anyMatch(e -> e.getTarget().equals(v)))
+                                    .count();
+                            return Math.log((double) totalVertices / (inDegree + 1));
+                        }
+                ));
+
+// 2.3 计算TF-IDF并归一化为初始PR值
+        Map<Vertex, Double> tfidfMap = graph.getVertices().stream()
+                .collect(Collectors.toMap(
+                        v -> v,
+                        v -> tfMap.get(v) * idfMap.get(v)
+                ));
+
+// 归一化TF-IDF值作为初始PR
+        double tfidfSum = tfidfMap.values().stream().mapToDouble(Double::doubleValue).sum();
+        Map<Vertex, Double> initialPR = tfidfMap.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        e -> tfidfSum == 0 ? 1.0 / totalVertices : e.getValue() / tfidfSum
+                ));
+
+// Step 3: 调用PageRank计算方法
+        Map<Vertex, Double> pageRank = graph.calculatePageRank(0.85, 10, initialPR);
+
+// Step 4: 处理悬挂节点（出度为0的节点）
+        List<Vertex> zeroOutDegreeNodes = graph.getVertices().stream()
+                .filter(v -> graph.getEdgesFrom(v).isEmpty())
+                .collect(Collectors.toList());
+
+        if (!zeroOutDegreeNodes.isEmpty()) {
+            // 计算需要重新分配的PR值（阻尼因子部分）
+            double danglingPR = zeroOutDegreeNodes.stream()
+                    .mapToDouble(v -> pageRank.get(v) * 0.85)
+                    .sum();
+
+            // 均分给所有节点
+            double prShare = danglingPR / totalVertices;
+
+            // 更新悬挂节点的PR值（保留(1-d)/N的部分）
+            for (Vertex v : zeroOutDegreeNodes) {
+                pageRank.put(v, (1 - 0.85) / totalVertices + prShare);
+            }
+
+            // 更新其他节点的PR值
+            for (Vertex v : graph.getVertices()) {
+                if (!zeroOutDegreeNodes.contains(v)) {
+                    pageRank.put(v, pageRank.get(v) + prShare);
+                }
+            }
+        }
+        /*
+        // Step 1: 计算总节点数
+        int totalVertices = graph.getVertices().size();
+
+// Step 2: 设置每个节点的初始 PageRank 为均匀值
+// 将每个节点的初始 PR 值设置为 1 / 总节点数
+        Map<Vertex, Double> initialPR = graph.getVertices().stream()
+                .collect(Collectors.toMap(
+                        v -> v,
+                        v -> 1.0 / totalVertices  // 每个节点的初始 PR 值都相等
+                ));
+
+// Step 3: 调用 PageRank 计算方法，并传入均匀初始化的 PR 值
+        Map<Vertex, Double> pageRank = graph.calculatePageRank(0.85, 20, initialPR);
+
+// Step 4: 处理出度为0的节点，将它们的 PR 值均分给其他节点
+// 获取出度为0的节点列表
+        List<Vertex> zeroOutDegreeNodes = graph.getVertices().stream()
+                .filter(v -> graph.getOutDegree(v) == 0)
+                .collect(Collectors.toList());
+
+// 总 PageRank 值
+        double totalPR = pageRank.values().stream().mapToDouble(Double::doubleValue).sum();
+
+// 如果有出度为0的节点，均分其 PR 值
+        if (!zeroOutDegreeNodes.isEmpty()) {
+            double prShare = totalPR / graph.getVertices().size();
+            for (Vertex v : zeroOutDegreeNodes) {
+                pageRank.put(v, prShare);
+            }
+        }
+*/
+// Step 5: 展示所有节点 PageRank（按照得分从高到低排序）
         StringBuilder sb = new StringBuilder();
-        sb.append("PageRank 结果 (d=0.85):\n");
+        sb.append("PageRank 结果 (d=0.85)：\n");
 
+// 按照 PageRank 值排序节点
         pageRank.entrySet().stream()
-                .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
-                .limit(10)
-                .forEach(entry -> {
-                    sb.append(entry.getKey().getWord())
-                            .append(": ")
-                            .append(String.format("%.4f", entry.getValue()))
-                            .append("\n");
-                });
+                .sorted((entry1, entry2) -> entry2.getValue().compareTo(entry1.getValue()))
+                .forEach(entry -> sb.append(entry.getKey().toString())
+                        .append(": ")
+                        .append(entry.getValue())
+                        .append("\n"));
 
+        System.out.println(sb.toString());
         pageRankResult.setText(sb.toString());
     }
 

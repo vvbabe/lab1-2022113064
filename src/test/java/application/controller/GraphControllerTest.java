@@ -74,8 +74,6 @@ public class GraphControllerTest extends ApplicationTest {
         clickOn("查询桥接词");  // 点击按钮，触发查询
 
         String result = lookup("#result").queryAs(TextArea.class).getText();
-        System.out.println("实际输出: " + result);
-
         assertEquals("The bridge words from \"the\" to \"report\" are: scientist and team", result);
     }
 
@@ -86,8 +84,6 @@ public class GraphControllerTest extends ApplicationTest {
         clickOn("查询桥接词");
 
         String result = lookup("#result").queryAs(TextArea.class).getText();
-        System.out.println("实际输出: " + result);
-
         assertEquals("No \"hello\" or \"python\" in the graph!", result);
     }
 
@@ -98,8 +94,6 @@ public class GraphControllerTest extends ApplicationTest {
         clickOn("查询桥接词");
 
         String result = lookup("#result").queryAs(TextArea.class).getText();
-        System.out.println("实际输出: " + result);
-
         assertEquals("No \"data\" or \"team\" in the graph!", result);
     }
 
@@ -110,9 +104,6 @@ public class GraphControllerTest extends ApplicationTest {
         clickOn("查询桥接词");
 
         String result = lookup("#result").queryAs(TextArea.class).getText();
-
-        System.out.println("实际输出: " + result);
-
         assertEquals("The bridge words from \"the\" to \"report\" are: scientist and team", result);
     }
 
@@ -123,7 +114,6 @@ public class GraphControllerTest extends ApplicationTest {
         clickOn("查询桥接词");
 
         String result = lookup("#result").queryAs(TextArea.class).getText();
-        System.out.println("实际输出: " + result);
         assertEquals("No \"again\" or \"hello\" in the graph!", result);
     }
 }
